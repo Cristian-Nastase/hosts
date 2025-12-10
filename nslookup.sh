@@ -1,21 +1,18 @@
 #!/bin/bash
 
-continut="/etc/hosts"
+if [ -z "$3" ];then
+	echo "Nu s-a transmis serverul DNS, va fi omis"
+	look=`nslookup $1`
+	last_word=$(echo "$look" | awk '{print $NF}' | tail -n 3 )
+else
+	look=`nslookup $1 $3`
+	last_word=$(echo "$look" | awk '{print $NF}' | tail -n 3 | head -n 1)
+fi
 
-while read line; do
-	for word in $line; do
-		firstchr=`echo $word | cut -c1-1`
-		if [[ "$firstchr" =~ ^[0-9] ]]; then
-			ip=$word
-		elif [ $firstchr != "#" ]; then
-			look=`nslookup $word`
-			last_word=$(echo "$look" | awk '{print $NF}' | tail -n 1)
-			if [ "$last_word" != "$ip" ]; then
-				echo "$last_word $ip"
-				echo "Bogus IP for $word in /etc/hosts!"
-			fi
-		elif [ $firstchr == "#" ]; then
-			exit 0
-		fi
-	done
-done < $continut
+echo "$last_word" 
+echo "$2"
+if [ "$last_word" != "$2" ]; then
+	echo "Bogus IP for $1"
+else
+	echo "Da, este corect"
+fi
